@@ -1,0 +1,141 @@
+package com.example.bnaka20242;
+
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+class BankDetails {
+    private String accno;
+    private String name;
+    private String acc_type;
+    private double balance;
+    private double flatFee; // Flat transaction fee
+    private double percentFee; // Percentage transaction fee
+    private String bankName;
+    Scanner sc = new Scanner(System.in);
+
+    public BankDetails(double flatFee, double percentFee, String bankName) {
+        this.flatFee = flatFee;
+        this.percentFee = percentFee;
+        this.bankName = bankName;
+    }
+
+    public BankDetails() {
+    }
+
+    // Method to open new account
+    public void openAccount() {
+        try {
+            System.out.println("Welcome to " + bankName + " Bank");
+            System.out.print("Enter Account No: ");
+            accno = sc.next();
+            System.out.print("Enter Account type: ");
+            acc_type = sc.next();
+            System.out.print("Enter Name: ");
+            name = sc.next();
+            System.out.print("Enter Balance (in dollars): ");
+            balance = sc.nextDouble();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input! Please enter a valid number.");
+            sc.nextLine(); // Clear the input buffer
+            openAccount(); // Retry opening an account
+        }
+    }
+
+    // Method to display account details
+    public void showAccount() {
+        System.out.println("Name of account holder: " + name);
+        System.out.println("Account no.: " + accno);
+        System.out.println("Account type: " + acc_type);
+        System.out.println("Balance: $" + String.format("%.2f", balance));
+    }
+
+    // Method to deposit money
+    public void deposit() {
+        System.out.println("Enter the amount you want to deposit (in dollars): ");
+        double amt = sc.nextDouble();
+
+        System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+        int feeChoice = sc.nextInt();
+        double totalFee = 0.0;
+
+        if (feeChoice == 1) {
+            totalFee = flatFee;
+        } else if (feeChoice == 2) {
+            totalFee = (amt * percentFee) / 100;
+        } else {
+            System.out.println("Invalid choice! No fee applied.");
+        }
+
+        if (balance + amt - totalFee >= 0) {
+            balance += amt - totalFee;
+            System.out.println("Deposit successful! Current balance: $" + String.format("%.2f", balance));
+        } else {
+            System.out.println("Deposit failed! Transaction would cause negative balance.");
+        }
+    }
+
+    // Method to withdraw money
+    public void withdrawal() {
+        System.out.println("Enter the amount you want to withdraw (in dollars): ");
+        double amt = sc.nextDouble();
+
+        System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+        int feeChoice = sc.nextInt();
+        double totalFee = 0.0;
+
+        if (feeChoice == 1) {
+            totalFee = flatFee;
+        } else if (feeChoice == 2) {
+            totalFee = (amt * percentFee) / 100;
+        } else {
+            System.out.println("Invalid choice! No fee applied.");
+        }
+
+        if (balance >= amt + totalFee) {
+            balance -= amt + totalFee;
+            System.out.println("Withdrawal successful! Current balance: $" + String.format("%.2f", balance));
+        } else {
+            System.out.println("Withdrawal failed! Insufficient balance.");
+        }
+    }
+
+    // Method to search an account number
+    public boolean search(String ac_no) {
+        if (accno.equals(ac_no)) {
+            showAccount();
+            return true;
+        }
+        return false;
+    }
+
+    // Method to transfer money
+    public void transfer(BankDetails receiver) {
+        System.out.println("Enter the amount you want to transfer (in dollars): ");
+        double amt = sc.nextDouble();
+        System.out.println("Enter reason for the transaction: ");
+        String reason = sc.next();
+
+        System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+        int feeChoice = sc.nextInt();
+        double totalFee = 0.0;
+
+        if (feeChoice == 1) {
+            totalFee = flatFee;
+        } else if (feeChoice == 2) {
+            totalFee = (amt * percentFee) / 100;
+        } else {
+            System.out.println("Invalid choice! No fee applied.");
+        }
+
+        if (balance >= amt + totalFee) {
+            balance -= amt + totalFee;
+            receiver.balance += amt;
+            System.out.println("Transfer successful! Current balance: $" + String.format("%.2f", balance));
+            System.out.println("Reason: " + reason);
+        } else {
+            System.out.println("Transfer failed! Insufficient balance for transfer.");
+        }
+   
+   }
+
+}
