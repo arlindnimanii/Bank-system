@@ -4,27 +4,46 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.ArrayList;
 
-class BankDetails {
-    private String accno;
-    private String name;
-    private String acc_type;
-    private double balance;
-    private double flatFee; // Flat transaction fee
-    private double percentFee; // Percentage transaction fee
-    private String bankName;
-    private ArrayList<String> transactions = new ArrayList<>();
-    Scanner sc = new Scanner(System.in);
+abstract class Account {
+    protected String accno;
+    protected String name;
+    protected String acc_type;
+    protected double balance;
+    protected String bankName;
+    protected ArrayList<String> transactions = new ArrayList<>();
+    protected Scanner sc = new Scanner(System.in);
 
-    public BankDetails(double flatFee, double percentFee, String bankName) {
-        this.flatFee = flatFee;
-        this.percentFee = percentFee;
+    public Account(String bankName) {
         this.bankName = bankName;
     }
 
-    public BankDetails() {
+    // Abstract methods
+    public abstract void openAccount();
+    public abstract void showAccount();
+    public abstract boolean search(String ac_no);
+    public abstract void showTransactions();
+
+    // Concrete methods
+    public double getBalance() {
+        return balance;
     }
 
-    // Method to open new account
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+}
+
+class BankDetails extends Account {
+    private double flatFee;
+    private double percentFee;
+
+    public BankDetails(double flatFee, double percentFee, String bankName) {
+        super(bankName);
+        this.flatFee = flatFee;
+        this.percentFee = percentFee;
+    }
+
+    @Override
     public void openAccount() {
         try {
             System.out.println("Welcome to " + bankName + " Bank");
@@ -43,7 +62,7 @@ class BankDetails {
         }
     }
 
-    // Method to display account details
+    @Override
     public void showAccount() {
         System.out.println("Name of account holder: " + name);
         System.out.println("Account no.: " + accno);
@@ -51,7 +70,6 @@ class BankDetails {
         System.out.println("Balance: $" + String.format("%.2f", balance));
     }
 
-    // Method to deposit money
     public double deposit(double amt, int feeChoice) {
         double totalFee = getTransactionFee(amt, feeChoice);
         if (balance + amt - totalFee >= 0) {
@@ -65,7 +83,11 @@ class BankDetails {
         }
     }
 
-    // Method to withdraw money
+    // Overloaded method for deposit with a default fee choice
+    public double deposit(double amt) {
+        return deposit(amt, 1); // Default fee choice is flat fee
+    }
+
     public double withdrawal(double amt, int feeChoice) {
         double totalFee = getTransactionFee(amt, feeChoice);
         if (balance >= amt + totalFee) {
@@ -79,7 +101,12 @@ class BankDetails {
         }
     }
 
-    // Method to search an account number
+    // Overloaded method for withdrawal with a default fee choice
+    public double withdrawal(double amt) {
+        return withdrawal(amt, 1); // Default fee choice is flat fee
+    }
+
+    @Override
     public boolean search(String ac_no) {
         if (accno.equals(ac_no)) {
             showAccount();
@@ -88,7 +115,6 @@ class BankDetails {
         return false;
     }
 
-    // Method to transfer money
     public double transfer(BankDetails receiver, double amt, int feeChoice) {
         double totalFee = getTransactionFee(amt, feeChoice);
         if (balance >= amt + totalFee) {
@@ -103,7 +129,6 @@ class BankDetails {
         }
     }
 
-    // Method to calculate transaction fee
     public double getTransactionFee(double amt, int feeChoice) {
         double totalFee = 0.0;
         if (feeChoice == 1) {
@@ -116,7 +141,7 @@ class BankDetails {
         return totalFee;
     }
 
-    // Method to show transactions
+    @Override
     public void showTransactions() {
         if (transactions.isEmpty()) {
             System.out.println("No transactions found.");
