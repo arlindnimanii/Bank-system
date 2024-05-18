@@ -1,10 +1,10 @@
 package com.example.bnaka20242;
 
-import com.example.bnaka20242.BankDetails;
-
 import java.util.Scanner;
 
 public class BankingApp {
+    private static double totalTransactionFee = 0.0;
+
     public static void main(String arg[]) {
         Scanner sc = new Scanner(System.in);
         System.out.print("Enter bank name: ");
@@ -31,7 +31,9 @@ public class BankingApp {
             System.out.println("3. Deposit amount");
             System.out.println("4. Withdraw amount");
             System.out.println("5. Transfer funds");
-            System.out.println("6. Exit");
+            System.out.println("6. See list of transactions for any account");
+            System.out.println("7. Check bank total transaction fee amount");
+            System.out.println("8. Exit");
             System.out.println("Enter your choice: ");
             choice = sc.nextInt();
 
@@ -61,15 +63,19 @@ public class BankingApp {
                     // Deposit amount
                     System.out.print("Enter Account number: ");
                     ac_no = sc.next();
-                    found = false;
+                    boolean foundDeposit = false;
                     for (int i = 0; i < C.length; i++) {
-                        found = C[i].search(ac_no);
-                        if (found) {
-                            C[i].deposit();
+                        foundDeposit = C[i].search(ac_no);
+                        if (foundDeposit) {
+                            System.out.println("Enter the amount you want to deposit (in dollars): ");
+                            double amt = sc.nextDouble();
+                            System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+                            int feeChoice = sc.nextInt();
+                            totalTransactionFee += C[i].deposit(amt, feeChoice);
                             break;
                         }
                     }
-                    if (!found) {
+                    if (!foundDeposit) {
                         System.out.println("Deposit failed! Account doesn't exist.");
                     }
                     break;
@@ -77,15 +83,19 @@ public class BankingApp {
                     // Withdraw amount
                     System.out.print("Enter Account number: ");
                     ac_no = sc.next();
-                    found = false;
+                    boolean foundWithdraw = false;
                     for (int i = 0; i < C.length; i++) {
-                        found = C[i].search(ac_no);
-                        if (found) {
-                            C[i].withdrawal();
+                        foundWithdraw = C[i].search(ac_no);
+                        if (foundWithdraw) {
+                            System.out.println("Enter the amount you want to withdraw (in dollars): ");
+                            double amt = sc.nextDouble();
+                            System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+                            int feeChoice = sc.nextInt();
+                            totalTransactionFee += C[i].withdrawal(amt, feeChoice);
                             break;
                         }
                     }
-                    if (!found) {
+                    if (!foundWithdraw) {
                         System.out.println("Withdrawal failed! Account doesn't exist.");
                     }
                     break;
@@ -123,14 +133,37 @@ public class BankingApp {
                         break;
                     }
 
-                    sender_account.transfer(receiver_account);
+                    System.out.println("Enter the amount you want to transfer (in dollars): ");
+                    double transferAmt = sc.nextDouble();
+                    System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+                    int feeChoice = sc.nextInt();
+                    totalTransactionFee += sender_account.transfer(receiver_account, transferAmt, feeChoice);
                     break;
                 case 6:
-                    System.out.println("Exiting...");
+                    // See list of transactions for any account
+                    System.out.print("Enter account number: ");
+                    ac_no = sc.next();
+                    boolean foundTransactions = false;
+                    for (int i = 0; i < C.length; i++) {
+                        foundTransactions = C[i].search(ac_no);
+                        if (foundTransactions) {
+                            C[i].showTransactions();
+                            break;
+                        }
+                    }
+                    if (!foundTransactions) {
+                        System.out.println("No transactions found! Account doesn't exist.");
+                    }
                     break;
-                default:
-                    System.out.println("Invalid choice! Please enter a valid option.");
+                case 7:
+                    // Check bank total transaction fee amount
+                    System.out.println("Total transaction fees collected by the bank: $" + String.format("%.2f", totalTransactionFee));
+                    break;
+                case 8:
+                    // Exit
+                    System.out.println("Exiting... Thank you for using " + bankName + " Bank.");
+                    break;
             }
-        } while (choice != 6);
+        } while (choice != 8);
     }
 }
