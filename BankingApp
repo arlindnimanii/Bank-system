@@ -3,8 +3,6 @@ package com.example.bnaka20242;
 import java.util.Scanner;
 
 public class BankingApp {
-    private static double totalTransactionFee = 0.0;
-
     public static void main(String arg[]) {
         Scanner sc = new Scanner(System.in);
         System.out.print("Enter bank name: ");
@@ -23,6 +21,7 @@ public class BankingApp {
             C[i].openAccount();
         }
 
+        double totalTransactionFee = 0.0;
         int choice;
         do {
             System.out.println("\n ***Banking System Application***");
@@ -63,19 +62,19 @@ public class BankingApp {
                     // Deposit amount
                     System.out.print("Enter Account number: ");
                     ac_no = sc.next();
-                    boolean foundDeposit = false;
+                    found = false;
                     for (int i = 0; i < C.length; i++) {
-                        foundDeposit = C[i].search(ac_no);
-                        if (foundDeposit) {
-                            System.out.println("Enter the amount you want to deposit (in dollars): ");
-                            double amt = sc.nextDouble();
+                        found = C[i].search(ac_no);
+                        if (found) {
+                            System.out.print("Enter the amount you want to deposit (in dollars): ");
+                            double depositAmt = sc.nextDouble();
                             System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
                             int feeChoice = sc.nextInt();
-                            totalTransactionFee += C[i].deposit(amt, feeChoice);
+                            totalTransactionFee += C[i].deposit(depositAmt, feeChoice);
                             break;
                         }
                     }
-                    if (!foundDeposit) {
+                    if (!found) {
                         System.out.println("Deposit failed! Account doesn't exist.");
                     }
                     break;
@@ -83,19 +82,19 @@ public class BankingApp {
                     // Withdraw amount
                     System.out.print("Enter Account number: ");
                     ac_no = sc.next();
-                    boolean foundWithdraw = false;
+                    found = false;
                     for (int i = 0; i < C.length; i++) {
-                        foundWithdraw = C[i].search(ac_no);
-                        if (foundWithdraw) {
-                            System.out.println("Enter the amount you want to withdraw (in dollars): ");
-                            double amt = sc.nextDouble();
+                        found = C[i].search(ac_no);
+                        if (found) {
+                            System.out.print("Enter the amount you want to withdraw (in dollars): ");
+                            double withdrawAmt = sc.nextDouble();
                             System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
                             int feeChoice = sc.nextInt();
-                            totalTransactionFee += C[i].withdrawal(amt, feeChoice);
+                            totalTransactionFee += C[i].withdrawal(withdrawAmt, feeChoice);
                             break;
                         }
                     }
-                    if (!foundWithdraw) {
+                    if (!found) {
                         System.out.println("Withdrawal failed! Account doesn't exist.");
                     }
                     break;
@@ -133,7 +132,7 @@ public class BankingApp {
                         break;
                     }
 
-                    System.out.println("Enter the amount you want to transfer (in dollars): ");
+                    System.out.print("Enter the amount you want to transfer (in dollars): ");
                     double transferAmt = sc.nextDouble();
                     System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
                     int feeChoice = sc.nextInt();
@@ -163,6 +162,8 @@ public class BankingApp {
                     // Exit
                     System.out.println("Exiting... Thank you for using " + bankName + " Bank.");
                     break;
+                default:
+                    System.out.println("Invalid choice! Please enter a valid option.");
             }
         } while (choice != 8);
     }
