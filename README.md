@@ -24,4 +24,4 @@ This is a simple banking system application implemented in Java. The application
 1. **Clone the repository:**
 
    ```sh
- https://github.com/arlindnimanii/Bank-system/edit/main/README.md
+ git clone https://github.com/arlindnimanii/banking-system.git
