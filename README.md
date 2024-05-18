@@ -19,9 +19,4 @@ This is a simple banking system application implemented in Java. The application
 
 - Java Development Kit (JDK) 8 or higher
 
-## Installation
 
-1. **Clone the repository:**
-
-   ```sh
- git clone https://github.com/arlindnimanii/Bank-system/tree/main
