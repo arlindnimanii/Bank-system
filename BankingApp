@@ -1,0 +1,136 @@
+package com.example.bnaka20242;
+
+import com.example.bnaka20242.BankDetails;
+
+import java.util.Scanner;
+
+public class BankingApp {
+    public static void main(String arg[]) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter bank name: ");
+        String bankName = sc.nextLine();
+        System.out.print("Enter flat fee: ");
+        double flatFee = sc.nextDouble();
+        System.out.print("Enter percentage fee: ");
+        double percentFee = sc.nextDouble();
+
+        // Create initial accounts
+        System.out.print("How many number of customers do you want to input? ");
+        int n = sc.nextInt();
+        BankDetails C[] = new BankDetails[n];
+        for (int i = 0; i < C.length; i++) {
+            C[i] = new BankDetails(flatFee, percentFee, bankName);
+            C[i].openAccount();
+        }
+
+        int choice;
+        do {
+            System.out.println("\n ***Banking System Application***");
+            System.out.println("1. Display all account details");
+            System.out.println("2. Search by Account number");
+            System.out.println("3. Deposit amount");
+            System.out.println("4. Withdraw amount");
+            System.out.println("5. Transfer funds");
+            System.out.println("6. Exit");
+            System.out.println("Enter your choice: ");
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    // Display all account details
+                    for (int i = 0; i < C.length; i++) {
+                        C[i].showAccount();
+                    }
+                    break;
+                case 2:
+                    // Search by account number
+                    System.out.print("Enter account number you want to search: ");
+                    String ac_no = sc.next();
+                    boolean found = false;
+                    for (int i = 0; i < C.length; i++) {
+                        found = C[i].search(ac_no);
+                        if (found) {
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        System.out.println("Search failed! Account doesn't exist.");
+                    }
+                    break;
+                case 3:
+                    // Deposit amount
+                    System.out.print("Enter Account number: ");
+                    ac_no = sc.next();
+                    found = false;
+                    for (int i = 0; i < C.length; i++) {
+                        found = C[i].search(ac_no);
+                        if (found) {
+                            C[i].deposit();
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        System.out.println("Deposit failed! Account doesn't exist.");
+                    }
+                    break;
+                case 4:
+                    // Withdraw amount
+                    System.out.print("Enter Account number: ");
+                    ac_no = sc.next();
+                    found = false;
+                    for (int i = 0; i < C.length; i++) {
+                        found = C[i].search(ac_no);
+                        if (found) {
+                            C[i].withdrawal();
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        System.out.println("Withdrawal failed! Account doesn't exist.");
+                    }
+                    break;
+                case 5:
+                    // Transfer funds
+                    System.out.print("Enter sender's Account No: ");
+                    String sender_ac_no = sc.next();
+                    boolean sender_found = false;
+                    BankDetails sender_account = null;
+                    for (int i = 0; i < C.length; i++) {
+                        if (C[i].search(sender_ac_no)) {
+                            sender_account = C[i];
+                            sender_found = true;
+                            break;
+                        }
+                    }
+                    if (!sender_found) {
+                        System.out.println("Sender account not found.");
+                        break;
+                    }
+
+                    System.out.print("Enter receiver's Account No: ");
+                    String receiver_ac_no = sc.next();
+                    boolean receiver_found = false;
+                    BankDetails receiver_account = null;
+                    for (int i = 0; i < C.length; i++) {
+                        if (C[i].search(receiver_ac_no)) {
+                            receiver_account = C[i];
+                            receiver_found = true;
+                            break;
+                        }
+                    }
+                    if (!receiver_found) {
+                        System.out.println("Receiver account not found.");
+                        break;
+                    }
+
+                    sender_account.transfer(receiver_account);
+                    break;
+                case 6:
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Invalid choice! Please enter a valid option.");
+            }
+        } while (choice != 6);
+    }
+}
