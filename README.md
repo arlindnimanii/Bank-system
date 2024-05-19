@@ -1,4 +1,5 @@
-Banking System Application
+
+#Banking System Application
 Overview
 This is a simple banking system application implemented in Java. The application allows users to perform various banking operations such as opening accounts, depositing and withdrawing money, transferring funds, and viewing transaction history. The application also tracks and displays the total transaction fees collected by the bank.
 
@@ -30,8 +31,18 @@ Open MySQL Workbench and connect to your MySQL server.
 
 Import the database_dump.sql file into your MySQL database.
 
+Alternatively, you can use the MySQL command line:
 
+sh
+Copy code
+mysql -u [username] -p [database_name] < database/database_dump.sql
 Connect Database to DB Browser
 Open DB Browser for SQLite.
 Open your MySQL database using the connection settings.
-Ensure the database is properly connected to IntelliJ IDEA using the JDBC drive
+Ensure the database is properly connected to IntelliJ IDEA using the JDBC driver.
+Configure the Project
+Update the database connection settings in the application.properties or application.yaml file located in the src/main/resources directory.
+
+Run the Application
+Open the project in IntelliJ IDEA.
+Build and run the project.
