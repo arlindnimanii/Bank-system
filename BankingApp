@@ -5,42 +5,38 @@ import java.util.Scanner;
 public class BankingApp {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Do you want to create a user or proceed with the services of the bank? (create/proceed): ");
-        String choice = sc.nextLine().toLowerCase();
+        while (true) {
+            System.out.print("Do you want to create a user or proceed with the services of the bank? (create/proceed): ");
+            String choice = sc.nextLine().toLowerCase();
 
-        if (choice.equals("create")) {
-            // If the user wants to create a user
-            System.out.print("Enter bank name: ");
-            String bankName = sc.nextLine();
-            System.out.print("Enter flat fee: ");
-            double flatFee = sc.nextDouble();
-            System.out.print("Enter percentage fee: ");
-            double percentFee = sc.nextDouble();
+            if (choice.equals("create")) {
+                // If the user wants to create a user
+                System.out.print("Enter bank name: ");
+                String bankName = sc.nextLine();
+                System.out.print("Enter flat fee: ");
+                double flatFee = sc.nextDouble();
+                System.out.print("Enter percentage fee: ");
+                double percentFee = sc.nextDouble();
+                sc.nextLine();  // consume the newline
 
-            // Create initial accounts
-            System.out.print("How many number of customers do you want to input? ");
-            int n = sc.nextInt();
-            BankDetails C[] = new BankDetails[n];
-            for (int i = 0; i < C.length; i++) {
-                C[i] = new BankDetails(flatFee, percentFee, bankName);
-                C[i].openAccount();
+                // Create initial accounts
+                BankDetails account = new BankDetails(flatFee, percentFee, bankName);
+                account.openAccount();
+
+            } else if (choice.equals("proceed")) {
+                // If the user wants to proceed with the services of the bank
+                // Retrieve user data from the database
+                BankDetails[] C = BankDetails.fetchUserDataFromDatabase();
+
+                // Proceed with banking services
+                processBankingServices(C, "Bank", sc);
+                break; // Exit the loop after proceeding with banking services
+            } else {
+                System.out.println("Invalid choice! Please enter either 'create' or 'proceed'.");
             }
-
-            // Proceed with banking services
-            processBankingServices(C, bankName, sc);
-        } else if (choice.equals("proceed")) {
-            // If the user wants to proceed with the services of the bank
-            // Retrieve user data from the database
-            BankDetails C[] = BankDetails.fetchUserDataFromDatabase();
-
-            // Proceed with banking services
-            processBankingServices(C, "Bank", sc);
-        } else {
-            System.out.println("Invalid choice! Please enter either 'create' or 'proceed'.");
         }
     }
-
-    private static void processBankingServices(BankDetails[] C, String bankName, Scanner sc) {
+    private static void processBankingServices(BankDetails[] accounts, String bankName, Scanner sc) {
         double totalTransactionFee = 0.0;
         int choice;
         do {
@@ -53,29 +49,28 @@ public class BankingApp {
             System.out.println("6. See list of transactions for any account");
             System.out.println("7. Check bank total transaction fee amount");
             System.out.println("8. Exit");
-            System.out.println("Enter your choice: ");
+            System.out.print("Enter your choice: ");
             choice = sc.nextInt();
+            sc.nextLine(); // consume newline
 
             switch (choice) {
                 case 1:
                     // Display all account details
-                    for (int i = 0; i < C.length; i++) {
-                        if (C[i] != null) {
-                            C[i].showAccount();
+                    for (BankDetails account : accounts) {
+                        if (account != null) {
+                            account.showAccount();
                         }
                     }
                     break;
                 case 2:
                     // Search by account number
                     System.out.print("Enter account number you want to search: ");
-                    String ac_no = sc.next();
+                    String accNo = sc.nextLine();
                     boolean found = false;
-                    for (int i = 0; i < C.length; i++) {
-                        if (C[i] != null) {
-                            found = C[i].search(ac_no);
-                            if (found) {
-                                break;
-                            }
+                    for (BankDetails account : accounts) {
+                        if (account != null && account.search(accNo)) {
+                            found = true;
+                            break;
                         }
                     }
                     if (!found) {
@@ -85,19 +80,19 @@ public class BankingApp {
                 case 3:
                     // Deposit amount
                     System.out.print("Enter Account number: ");
-                    ac_no = sc.next();
+                    accNo = sc.nextLine();
                     found = false;
-                    for (int i = 0; i < C.length; i++) {
-                        if (C[i] != null) {
-                            found = C[i].search(ac_no);
-                            if (found) {
-                                System.out.print("Enter the amount you want to deposit (in dollars): ");
-                                double depositAmt = sc.nextDouble();
-                                System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
-                                int feeChoice = sc.nextInt();
-                                totalTransactionFee += C[i].deposit(depositAmt, feeChoice);
-                                break;
-                            }
+                    for (BankDetails account : accounts) {
+                        if (account != null && account.search(accNo)) {
+                            System.out.print("Enter the amount you want to deposit (in dollars): ");
+                            double depositAmt = sc.nextDouble();
+                            System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+                            int feeChoice = sc.nextInt();
+                            double fee = account.deposit(depositAmt, feeChoice);
+                            System.out.println("Fee charged: $" + String.format("%.2f", fee));
+                            totalTransactionFee += fee;
+                            found = true;
+                            break;
                         }
                     }
                     if (!found) {
@@ -107,19 +102,19 @@ public class BankingApp {
                 case 4:
                     // Withdraw amount
                     System.out.print("Enter Account number: ");
-                    ac_no = sc.next();
+                    accNo = sc.nextLine();
                     found = false;
-                    for (int i = 0; i < C.length; i++) {
-                        if (C[i] != null) {
-                            found = C[i].search(ac_no);
-                            if (found) {
-                                System.out.print("Enter the amount you want to withdraw (in dollars): ");
-                                double withdrawAmt = sc.nextDouble();
-                                System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
-                                int feeChoice = sc.nextInt();
-                                totalTransactionFee += C[i].withdrawal(withdrawAmt, feeChoice);
-                                break;
-                            }
+                    for (BankDetails account : accounts) {
+                        if (account != null && account.search(accNo)) {
+                            System.out.print("Enter the amount you want to withdraw (in dollars): ");
+                            double withdrawAmt = sc.nextDouble();
+                            System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
+                            int feeChoice = sc.nextInt();
+                            double fee = account.withdrawal(withdrawAmt, feeChoice);
+                            System.out.println("Fee charged: $" + String.format("%.2f", fee));
+                            totalTransactionFee += fee;
+                            found = true;
+                            break;
                         }
                     }
                     if (!found) {
@@ -129,37 +124,33 @@ public class BankingApp {
                 case 5:
                     // Transfer funds
                     System.out.print("Enter sender's Account No: ");
-                    String sender_ac_no = sc.next();
-                    boolean sender_found = false;
-                    BankDetails sender_account = null;
-                    for (int i = 0; i < C.length; i++) {
-                        if (C[i] != null) {
-                            if (C[i].search(sender_ac_no)) {
-                                sender_account = C[i];
-                                sender_found = true;
-                                break;
-                            }
+                    String senderAccNo = sc.nextLine();
+                    boolean senderFound = false;
+                    BankDetails senderAccount = null;
+                    for (BankDetails account : accounts) {
+                        if (account != null && account.search(senderAccNo)) {
+                            senderAccount = account;
+                            senderFound = true;
+                            break;
                         }
                     }
-                    if (!sender_found) {
+                    if (!senderFound) {
                         System.out.println("Sender account not found.");
                         break;
                     }
 
                     System.out.print("Enter receiver's Account No: ");
-                    String receiver_ac_no = sc.next();
-                    boolean receiver_found = false;
-                    BankDetails receiver_account = null;
-                    for (int i = 0; i < C.length; i++) {
-                        if (C[i] != null) {
-                            if (C[i].search(receiver_ac_no)) {
-                                receiver_account = C[i];
-                                receiver_found = true;
-                                break;
-                            }
+                    String receiverAccNo = sc.nextLine();
+                    boolean receiverFound = false;
+                    BankDetails receiverAccount = null;
+                    for (BankDetails account : accounts) {
+                        if (account != null && account.search(receiverAccNo)) {
+                            receiverAccount = account;
+                            receiverFound = true;
+                            break;
                         }
                     }
-                    if (!receiver_found) {
+                    if (!receiverFound) {
                         System.out.println("Receiver account not found.");
                         break;
                     }
@@ -168,20 +159,20 @@ public class BankingApp {
                     double transferAmt = sc.nextDouble();
                     System.out.println("Choose transaction fee type: 1. Flat Fee 2. Percentage Fee");
                     int feeChoice = sc.nextInt();
-                    totalTransactionFee += sender_account.transfer(receiver_account, transferAmt, feeChoice);
+                    double fee = senderAccount.transfer(receiverAccount, transferAmt, feeChoice);
+                    System.out.println("Fee charged: $" + String.format("%.2f", fee));
+                    totalTransactionFee += fee;
                     break;
                 case 6:
                     // See list of transactions for any account
                     System.out.print("Enter account number: ");
-                    ac_no = sc.next();
+                    accNo = sc.nextLine();
                     boolean foundTransactions = false;
-                    for (int i = 0; i < C.length; i++) {
-                        if (C[i] != null) {
-                            foundTransactions = C[i].search(ac_no);
-                            if (foundTransactions) {
-                                C[i].showTransactions();
-                                break;
-                            }
+                    for (BankDetails account : accounts) {
+                        if (account != null && account.search(accNo)) {
+                            account.showTransactions();
+                            foundTransactions = true;
+                            break;
                         }
                     }
                     if (!foundTransactions) {
@@ -190,8 +181,7 @@ public class BankingApp {
                     break;
                 case 7:
                     // Check bank total transaction fee amount
-                    double totalFeesCollected = BankDetails.getTotalFeesCollected();
-                    System.out.println("Total transaction fees collected by the bank: $" + String.format("%.2f", totalFeesCollected));
+                    System.out.println("Total transaction fees collected by the bank: $" + String.format("%.2f", totalTransactionFee));
                     break;
                 case 8:
                     // Exit
