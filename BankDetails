@@ -1,155 +1,205 @@
 package com.example.bnaka20242;
 
-import java.util.InputMismatchException;
+import java.sql.*;
 import java.util.Scanner;
-import java.util.ArrayList;
 
-abstract class Account {
-    protected String accno;
-    protected String name;
-    protected String acc_type;
-    protected double balance;
-    protected String bankName;
-    protected ArrayList<String> transactions = new ArrayList<>();
-    protected Scanner sc = new Scanner(System.in);
+public class BankDetails {
+    private String accNo;
+    private String name;
+    private String accType;
+    private double balance;
+    private double flatFee;
+    private double percentFee;
+    private String bankName;
 
-    public Account(String bankName) {
+    // Constructor
+    public BankDetails(double flatFee, double percentFee, String bankName) {
+        this.flatFee = flatFee;
+        this.percentFee = percentFee;
         this.bankName = bankName;
     }
 
-    // Abstract methods
-    public abstract void openAccount();
-    public abstract void showAccount();
-    public abstract boolean search(String ac_no);
-    public abstract void showTransactions();
+    // Fetch all users from the database
+    public static BankDetails[] fetchUserDataFromDatabase() {
+        String url = "jdbc:mysql://localhost:3306/banking_db";
+        String user = "root";
+        String password = "a.n8";
 
-    // Concrete methods
-    public double getBalance() {
-        return balance;
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            String query = "SELECT * FROM users";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            ResultSet rs = pstmt.executeQuery();
+
+            // Assuming a maximum of 100 users for simplicity
+            BankDetails[] users = new BankDetails[100];
+            int index = 0;
+            while (rs.next()) {
+                double flatFee = 0; // Set this based on your logic
+                double percentFee = 0; // Set this based on your logic
+                String bankName = rs.getString("bankName");
+
+                BankDetails userObj = new BankDetails(flatFee, percentFee, bankName);
+                userObj.accNo = rs.getString("accno");
+                userObj.name = rs.getString("name");
+                userObj.accType = rs.getString("acc_type");
+                userObj.balance = rs.getDouble("balance");
+
+                users[index++] = userObj;
+            }
+            return users;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new BankDetails[0];
+        }
     }
 
-    public void setBalance(double balance) {
-        this.balance = balance;
-    }
-}
-
-class BankDetails extends Account {
-    private double flatFee;
-    private double percentFee;
-
-    public BankDetails(double flatFee, double percentFee, String bankName) {
-        super(bankName);
-        this.flatFee = flatFee;
-        this.percentFee = percentFee;
+    public static double getTotalFeesCollected() {
+        return 0;
     }
 
-    @Override
+    // Open account method
     public void openAccount() {
-        try {
-            System.out.println("Welcome to " + bankName + " Bank");
-            System.out.print("Enter Account No: ");
-            accno = sc.next();
-            System.out.print("Enter Account type: ");
-            acc_type = sc.next();
-            System.out.print("Enter Name: ");
-            name = sc.next();
-            System.out.print("Enter Balance (in dollars): ");
-            balance = sc.nextDouble();
-        } catch (InputMismatchException e) {
-            System.out.println("Invalid input! Please enter a valid number.");
-            sc.nextLine(); // Clear the input buffer
-            openAccount(); // Retry opening an account
-        }
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter Account No: ");
+        this.accNo = sc.next();
+        System.out.print("Enter Account type: ");
+        this.accType = sc.next();
+        System.out.print("Enter Name: ");
+        this.name = sc.next();
+        System.out.print("Enter Balance: ");
+        this.balance = sc.nextDouble();
+
+        // Save the account details to the database
+        saveToDatabase();
     }
 
-    @Override
+    // Show account details method
     public void showAccount() {
-        System.out.println("Name of account holder: " + name);
-        System.out.println("Account no.: " + accno);
-        System.out.println("Account type: " + acc_type);
-        System.out.println("Balance: $" + String.format("%.2f", balance));
+        System.out.println("Account No: " + this.accNo);
+        System.out.println("Account type: " + this.accType);
+        System.out.println("Name: " + this.name);
+        System.out.println("Balance: " + this.balance);
     }
 
-    public double deposit(double amt, int feeChoice) {
-        double totalFee = getTransactionFee(amt, feeChoice);
-        if (balance + amt - totalFee >= 0) {
-            balance += amt - totalFee;
-            transactions.add("Deposited: $" + amt + ", Fee: $" + totalFee);
-            System.out.println("Deposit successful! Current balance: $" + String.format("%.2f", balance));
-            return totalFee;
-        } else {
-            System.out.println("Deposit failed! Transaction would cause negative balance.");
-            return 0.0;
-        }
-    }
-
-    // Overloaded method for deposit with a default fee choice
-    public double deposit(double amt) {
-        return deposit(amt, 1); // Default fee choice is flat fee
-    }
-
-    public double withdrawal(double amt, int feeChoice) {
-        double totalFee = getTransactionFee(amt, feeChoice);
-        if (balance >= amt + totalFee) {
-            balance -= amt + totalFee;
-            transactions.add("Withdrew: $" + amt + ", Fee: $" + totalFee);
-            System.out.println("Withdrawal successful! Current balance: $" + String.format("%.2f", balance));
-            return totalFee;
-        } else {
-            System.out.println("Withdrawal failed! Insufficient balance.");
-            return 0.0;
-        }
-    }
-
-    // Overloaded method for withdrawal with a default fee choice
-    public double withdrawal(double amt) {
-        return withdrawal(amt, 1); // Default fee choice is flat fee
-    }
-
-    @Override
-    public boolean search(String ac_no) {
-        if (accno.equals(ac_no)) {
+    // Search account by account number method
+    public boolean search(String accNo) {
+        if (this.accNo.equals(accNo)) {
             showAccount();
             return true;
         }
         return false;
     }
 
-    public double transfer(BankDetails receiver, double amt, int feeChoice) {
-        double totalFee = getTransactionFee(amt, feeChoice);
-        if (balance >= amt + totalFee) {
-            balance -= amt + totalFee;
-            receiver.balance += amt;
-            transactions.add("Transferred: $" + amt + " to " + receiver.accno + ", Fee: $" + totalFee);
-            System.out.println("Transfer successful! Current balance: $" + String.format("%.2f", balance));
-            return totalFee;
-        } else {
-            System.out.println("Transfer failed! Insufficient balance for transfer.");
-            return 0.0;
-        }
+    // Deposit amount method
+    public double deposit(double amount, int feeType) {
+        double fee = (feeType == 1) ? flatFee : (amount * percentFee / 100);
+        this.balance += (amount - fee);
+        updateBalanceInDatabase();
+        saveTransaction("deposit", amount, fee);
+        return fee;
     }
 
-    public double getTransactionFee(double amt, int feeChoice) {
-        double totalFee = 0.0;
-        if (feeChoice == 1) {
-            totalFee = flatFee;
-        } else if (feeChoice == 2) {
-            totalFee = (amt * percentFee) / 100;
-        } else {
-            System.out.println("Invalid choice! No fee applied.");
-        }
-        return totalFee;
+    // Withdrawal amount method
+    public double withdrawal(double amount, int feeType) {
+        double fee = (feeType == 1) ? flatFee : (amount * percentFee / 100);
+        this.balance -= (amount + fee);
+        updateBalanceInDatabase();
+        saveTransaction("withdrawal", amount, fee);
+        return fee;
     }
 
-    @Override
+    // Transfer funds method
+    public double transfer(BankDetails toAccount, double amount, int feeType) {
+        double fee = (feeType == 1) ? flatFee : (amount * percentFee / 100);
+        this.balance -= (amount + fee);
+        toAccount.balance += amount;
+        updateBalanceInDatabase();
+        toAccount.updateBalanceInDatabase();
+        saveTransaction("transfer out", amount, fee);
+        toAccount.saveTransaction("transfer in", amount, 0);
+        return fee;
+    }
+
+    // Show transactions method
     public void showTransactions() {
-        if (transactions.isEmpty()) {
-            System.out.println("No transactions found.");
-        } else {
-            for (String transaction : transactions) {
-                System.out.println(transaction);
+        String url = "jdbc:mysql://localhost:3306/banking_db";
+        String user = "root";
+        String password = "a.n8";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            String query = "SELECT * FROM transactions WHERE accno = ?";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, this.accNo);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String type = rs.getString("type");
+                double amount = rs.getDouble("amount");
+                double fee = rs.getDouble("fee");
+                Timestamp timestamp = rs.getTimestamp("timestamp");
+                System.out.println("Type: " + type + ", Amount: " + amount + ", Fee: " + fee + ", Timestamp: " + timestamp);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
+    // Save account details to the database
+    private void saveToDatabase() {
+        String url = "jdbc:mysql://localhost:3306/banking_db";
+        String user = "root";
+        String password = "a.n8";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            String query = "INSERT INTO users (accno, name, acc_type, balance, bankName) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, this.accNo);
+            pstmt.setString(2, this.name);
+            pstmt.setString(3, this.accType);
+            pstmt.setDouble(4, this.balance);
+            pstmt.setString(5, this.bankName);
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Update balance in the database
+    private void updateBalanceInDatabase() {
+        String url = "jdbc:mysql://localhost:3306/banking_db";
+        String user = "root";
+        String password = "a.n8";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            String query = "UPDATE users SET balance = ? WHERE accno = ?";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setDouble(1, this.balance);
+            pstmt.setString(2, this.accNo);
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Save transaction to the database
+    private void saveTransaction(String type, double amount, double fee) {
+        String url = "jdbc:mysql://localhost:3306/banking_db";
+        String user = "root";
+        String password = "a.n8";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            String query = "INSERT INTO transactions (accno, type, amount, fee, timestamp) VALUES (?, ?, ?, ?, NOW())";
+            PreparedStatement pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, this.accNo);
+            pstmt.setString(2, type);
+            pstmt.setDouble(3, amount);
+            pstmt.setDouble(4, fee);
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
